@@ -976,3 +976,26 @@ textarea.form-control {
   .stats-grid { grid-template-columns: repeat(4, 1fr); }
   .fab { bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 20px); }
 }
+
+/* ── Alert Cards ── */
+.alert-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid;
+  margin-bottom: 10px;
+}
+.alert-red   { background: var(--red-100);   border-color: var(--red-200);   }
+.alert-amber { background: var(--amber-100); border-color: var(--amber-300); }
+.alert-icon  { font-size: 18px; flex-shrink:0; margin-top:1px; }
+.alert-body  { flex:1; font-size:13px; font-weight:500; line-height:1.5; }
+.alert-body  strong { display:block; margin-bottom:2px; }
+.alert-red   .alert-body { color: var(--red-700); }
+.alert-amber .alert-body { color: var(--amber-700); }
+.alert-date  { font-size:11px; font-weight:400; opacity:0.8; }
+
+/* ── Overdue row highlight ── */
+.card-row.urgent { background: #fff8f0; }
+.card-row.overdue { background: #fff0f0; }
