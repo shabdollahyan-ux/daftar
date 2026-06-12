@@ -15,20 +15,17 @@
 </head>
 <body>
 
-<!-- Install Banner -->
 <div id="install-banner" class="install-banner" style="display:none">
-  <div class="install-banner-text"><strong>نصب اپ</strong> روی گوشی نصب کنید تا بدون اینترنت باز شود</div>
+  <div class="install-banner-text"><strong>نصب اپ</strong> بدون اینترنت کار کند</div>
   <button class="btn btn-sm" style="background:white;color:var(--blue-700);width:auto;flex-shrink:0" onclick="triggerInstall()">نصب</button>
   <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;flex-shrink:0">✕</button>
 </div>
 
-<!-- Header -->
 <header class="app-header">
   <div class="app-title"><span class="app-title-icon">📒</span>دفتر بدهی‌ها</div>
   <div id="saveChip" class="save-chip"><span class="save-dot"></span><span id="saveChipText">در حال بارگذاری...</span></div>
 </header>
 
-<!-- Main -->
 <main class="main-content">
 
   <!-- Dashboard -->
@@ -36,8 +33,7 @@
     <div class="page-content">
       <div id="backup-banner" class="backup-banner" style="display:none">
         <div class="backup-banner-icon">⚠️</div>
-        <div class="backup-banner-text">
-          <strong>یادآوری بکاپ</strong> برای امنیت بیشتر خروجی JSON بگیرید.
+        <div class="backup-banner-text"><strong>یادآوری بکاپ</strong> برای امنیت بیشتر خروجی JSON بگیرید.
           <div class="backup-banner-actions">
             <button class="btn btn-sm" style="background:var(--amber-700);color:white;border-color:var(--amber-700)" onclick="exportJSON();dismissBackup()">گرفتن بکاپ</button>
             <button class="btn btn-sm btn-secondary" onclick="dismissBackup()">بعداً</button>
@@ -49,6 +45,15 @@
         <div class="stat-card"><div class="stat-label">جمع پرداخت</div><div class="stat-value green" id="stat-paid">۰</div><div class="stat-unit">تومان</div></div>
         <div class="stat-card"><div class="stat-label">طرف حساب</div><div class="stat-value blue" id="stat-accounts">۰</div><div class="stat-unit">فعال</div></div>
         <div class="stat-card"><div class="stat-label">تراکنش</div><div class="stat-value" id="stat-txns">۰</div><div class="stat-unit">ثبت‌شده</div></div>
+      </div>
+      <!-- این ماه -->
+      <div class="month-due-card" onclick="switchPage('recurring')">
+        <div style="flex:1">
+          <div style="font-size:12px;color:var(--blue-700);font-weight:600;margin-bottom:4px">📅 پرداختی‌های <span id="stat-month-label">این ماه</span></div>
+          <div style="font-size:22px;font-weight:700;color:var(--blue-900,#0F2D50)" id="stat-month-due">۰</div>
+          <div style="font-size:11px;color:var(--blue-400)">تومان · برای جزئیات کلیک کنید</div>
+        </div>
+        <span style="font-size:24px">📋</span>
       </div>
       <div id="dash-alerts"></div>
       <div id="dash-recent"></div>
@@ -99,9 +104,12 @@
 
   <!-- Loans -->
   <div id="page-loans" class="page">
-    <div class="page-content">
-      <div id="loans-list"></div>
-    </div>
+    <div class="page-content"><div id="loans-list"></div></div>
+  </div>
+
+  <!-- Recurring -->
+  <div id="page-recurring" class="page">
+    <div class="page-content"><div id="recurring-list"></div></div>
   </div>
 
   <!-- Reports -->
@@ -109,13 +117,12 @@
     <div class="page-content">
       <div class="card" style="margin-bottom:12px">
         <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200)"><div class="section-title">بکاپ و بازیابی</div></div>
-        <div style="padding:0 16px 14px;display:flex;gap:8px;flex-wrap:wrap;padding-top:14px">
+        <div style="padding:14px 16px;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-secondary" onclick="exportJSON()">📤 گرفتن بکاپ JSON</button>
           <button class="btn btn-secondary" onclick="importJSON()">📥 بازیابی بکاپ</button>
         </div>
       </div>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
-
       <div class="card" style="margin-bottom:12px">
         <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200)"><div class="section-title">گزارش طرف حساب</div></div>
         <div style="padding:14px 16px">
@@ -124,7 +131,6 @@
           <div id="report-output" class="mt-4"></div>
         </div>
       </div>
-
       <div class="card" style="margin-bottom:12px">
         <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200)"><div class="section-title">خلاصه کل دفتر</div></div>
         <div style="padding:14px 16px">
@@ -132,11 +138,10 @@
           <div id="summary-output" class="mt-4"></div>
         </div>
       </div>
-
       <div class="card" style="border-color:#F5C6C6">
         <div style="padding:14px 16px;border-bottom:1px solid #F5C6C6"><div class="section-title" style="color:#B94040">⚠️ پاک کردن اطلاعات</div></div>
         <div style="padding:14px 16px">
-          <p style="font-size:13px;color:#6B6860;margin-bottom:14px;line-height:1.8">تمام طرف حساب‌ها، تراکنش‌ها، چک‌ها و وام‌ها پاک می‌شود.<br><strong>این عملیات برگشت‌پذیر نیست.</strong></p>
+          <p style="font-size:13px;color:#6B6860;margin-bottom:14px;line-height:1.8">تمام اطلاعات پاک می‌شود.<br><strong>این عملیات برگشت‌پذیر نیست.</strong></p>
           <button class="btn btn-danger" onclick="factoryReset()">🗑️ پاک کردن همه اطلاعات</button>
         </div>
       </div>
@@ -145,31 +150,27 @@
 
 </main>
 
-<!-- FAB -->
 <button id="fab" class="fab" onclick="openAddTransaction()">+ تراکنش</button>
 
-<!-- Bottom Nav -->
 <nav class="bottom-nav">
-  <button class="nav-item active" id="nav-dashboard"    onclick="switchPage('dashboard')">   <span class="nav-icon">🏠</span><span class="nav-label">داشبورد</span></button>
+  <button class="nav-item active" id="nav-dashboard"    onclick="switchPage('dashboard')">   <span class="nav-icon">🏠</span><span class="nav-label">خانه</span></button>
   <button class="nav-item"        id="nav-accounts"     onclick="switchPage('accounts')">    <span class="nav-icon">👥</span><span class="nav-label">حساب‌ها</span></button>
-  <button class="nav-item"        id="nav-transactions" onclick="switchPage('transactions')"><span class="nav-icon">📋</span><span class="nav-label">تراکنش‌ها</span></button>
+  <button class="nav-item"        id="nav-transactions" onclick="switchPage('transactions')"><span class="nav-icon">📋</span><span class="nav-label">تراکنش</span></button>
   <button class="nav-item"        id="nav-checks"       onclick="switchPage('checks')">      <span class="nav-icon">🧾</span><span class="nav-label">چک‌ها</span></button>
   <button class="nav-item"        id="nav-loans"        onclick="switchPage('loans')">       <span class="nav-icon">💳</span><span class="nav-label">وام‌ها</span></button>
-  <button class="nav-item"        id="nav-reports"      onclick="switchPage('reports')">     <span class="nav-icon">📈</span><span class="nav-label">گزارش‌ها</span></button>
+  <button class="nav-item"        id="nav-recurring"    onclick="switchPage('recurring')">   <span class="nav-icon">📅</span><span class="nav-label">دوره‌ای</span></button>
+  <button class="nav-item"        id="nav-reports"      onclick="switchPage('reports')">     <span class="nav-icon">📈</span><span class="nav-label">گزارش</span></button>
 </nav>
 
 <div id="toast-wrap" class="toast-wrap"></div>
 
 <!-- ══ Sheets ══ -->
-
-<!-- Detail -->
 <div id="detail-sheet" class="sheet-overlay"><div class="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header"><span class="sheet-title" id="detail-sheet-title">جزئیات</span><button class="sheet-close" onclick="closeSheet('detail-sheet')">✕</button></div>
   <div class="sheet-body" id="detail-sheet-body"></div>
 </div></div>
 
-<!-- Account -->
 <div id="acc-sheet" class="sheet-overlay"><div class="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header"><span class="sheet-title" id="acc-sheet-title">افزودن طرف حساب</span><button class="sheet-close" onclick="closeSheet('acc-sheet')">✕</button></div>
@@ -181,43 +182,30 @@
   <div class="sheet-footer"><button class="btn btn-primary" onclick="saveAccount()">ذخیره</button><button class="btn btn-secondary" style="width:auto" onclick="closeSheet('acc-sheet')">انصراف</button></div>
 </div></div>
 
-<!-- Transaction -->
 <div id="txn-sheet" class="sheet-overlay"><div class="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header"><span class="sheet-title" id="txn-sheet-title">ثبت تراکنش</span><button class="sheet-close" onclick="closeSheet('txn-sheet')">✕</button></div>
   <div class="sheet-body">
-    <div class="form-group"><label class="form-label">نوع تراکنش <span class="req">*</span></label>
-      <div class="seg-control">
-        <button class="seg-btn active type-receive" data-type="receive" onclick="setSegment('receive')">📥 دریافت</button>
-        <button class="seg-btn type-pay"            data-type="pay"     onclick="setSegment('pay')">📤 پرداخت</button>
-        <button class="seg-btn type-adjust"         data-type="adjust"  onclick="setSegment('adjust')">⚙️ اصلاحیه</button>
-      </div>
+    <div class="form-group"><label class="form-label">نوع <span class="req">*</span></label>
+      <div class="seg-control"><button class="seg-btn active type-receive" data-type="receive" onclick="setSegment('receive')">📥 دریافت</button><button class="seg-btn type-pay" data-type="pay" onclick="setSegment('pay')">📤 پرداخت</button><button class="seg-btn type-adjust" data-type="adjust" onclick="setSegment('adjust')">⚙️ اصلاحیه</button></div>
     </div>
     <div class="form-group"><label class="form-label">طرف حساب <span class="req">*</span></label><select id="txn-acc-select" class="form-control"><option value="">-- انتخاب کنید --</option></select></div>
     <div class="row">
       <div class="form-group"><label class="form-label">مبلغ (تومان) <span class="req">*</span></label><input id="txn-amount" type="number" class="form-control" placeholder="۰" min="0" style="direction:ltr"></div>
-      <div class="form-group"><label class="form-label">تاریخ <span class="req">*</span></label>
-        <div id="txn-date-display" class="date-display" tabindex="0" onclick="openCalendar()" data-value=""><span class="date-val">انتخاب تاریخ</span><span>📅</span></div>
-      </div>
+      <div class="form-group"><label class="form-label">تاریخ <span class="req">*</span></label><div id="txn-date-display" class="date-display" tabindex="0" onclick="openCalendar()" data-value=""><span class="date-val">انتخاب تاریخ</span><span>📅</span></div></div>
     </div>
-    <div class="form-group"><label class="form-label">روش پرداخت</label>
-      <select id="txn-method" class="form-control"><option value="card">کارت به کارت</option><option value="cash">نقدی</option><option value="check">چک</option><option value="transfer">حواله</option><option value="other">سایر</option></select>
-    </div>
+    <div class="form-group"><label class="form-label">روش پرداخت</label><select id="txn-method" class="form-control"><option value="card">کارت به کارت</option><option value="cash">نقدی</option><option value="check">چک</option><option value="transfer">حواله</option><option value="other">سایر</option></select></div>
     <div class="form-group"><label class="form-label">توضیحات</label><textarea id="txn-desc" class="form-control" rows="2" placeholder="اختیاری"></textarea></div>
   </div>
   <div class="sheet-footer"><button class="btn btn-primary" onclick="saveTransaction()">ثبت تراکنش</button><button class="btn btn-secondary" style="width:auto" onclick="closeSheet('txn-sheet')">انصراف</button></div>
 </div></div>
 
-<!-- Check -->
 <div id="check-sheet" class="sheet-overlay"><div class="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header"><span class="sheet-title">ثبت چک</span><button class="sheet-close" onclick="closeSheet('check-sheet')">✕</button></div>
   <div class="sheet-body">
     <div class="form-group"><label class="form-label">نوع چک <span class="req">*</span></label>
-      <div class="seg-control" style="grid-template-columns:1fr 1fr">
-        <button class="seg-btn active" id="seg-issued"   onclick="$('check-direction').value='issued';  this.classList.add('active');$('seg-received').classList.remove('active')">📤 صادره (دادم)</button>
-        <button class="seg-btn"       id="seg-received"  onclick="$('check-direction').value='received';this.classList.add('active');$('seg-issued').classList.remove('active')">📥 دریافتی (گرفتم)</button>
-      </div>
+      <div class="seg-control" style="grid-template-columns:1fr 1fr"><button class="seg-btn active" id="seg-issued" onclick="$('check-direction').value='issued';this.classList.add('active');$('seg-received').classList.remove('active')">📤 صادره (دادم)</button><button class="seg-btn" id="seg-received" onclick="$('check-direction').value='received';this.classList.add('active');$('seg-issued').classList.remove('active')">📥 دریافتی (گرفتم)</button></div>
       <input type="hidden" id="check-direction" value="issued">
     </div>
     <div class="form-group"><label class="form-label">طرف حساب <span class="req">*</span></label><select id="check-acc-select" class="form-control"><option value="">-- انتخاب کنید --</option></select></div>
@@ -226,53 +214,68 @@
       <div class="form-group"><label class="form-label">شماره چک</label><input id="check-number" type="text" class="form-control" placeholder="اختیاری" style="direction:ltr"></div>
     </div>
     <div class="row">
-      <div class="form-group"><label class="form-label">تاریخ صدور</label>
-        <div id="check-issue-display" class="date-display" tabindex="0" onclick="openCheckCal('issue')" data-value=""><span class="date-val">انتخاب تاریخ</span><span>📅</span></div>
-      </div>
-      <div class="form-group"><label class="form-label">تاریخ سررسید <span class="req">*</span></label>
-        <div id="check-due-display" class="date-display" tabindex="0" onclick="openCheckCal('due')" data-value=""><span class="date-val">انتخاب تاریخ</span><span>📅</span></div>
-      </div>
+      <div class="form-group"><label class="form-label">تاریخ صدور</label><div id="check-issue-display" class="date-display" tabindex="0" onclick="openCheckCal('issue')" data-value=""><span class="date-val">انتخاب تاریخ</span><span>📅</span></div></div>
+      <div class="form-group"><label class="form-label">تاریخ سررسید <span class="req">*</span></label><div id="check-due-display" class="date-display" tabindex="0" onclick="openCheckCal('due')" data-value=""><span class="date-val">انتخاب تاریخ</span><span>📅</span></div></div>
     </div>
     <div class="form-group"><label class="form-label">توضیحات</label><textarea id="check-desc" class="form-control" rows="2" placeholder="مثلاً: چک ثبت‌نام مدرسه پسرم"></textarea></div>
   </div>
   <div class="sheet-footer"><button class="btn btn-primary" onclick="saveCheck()">ثبت چک</button><button class="btn btn-secondary" style="width:auto" onclick="closeSheet('check-sheet')">انصراف</button></div>
 </div></div>
 
-<!-- Loan -->
 <div id="loan-sheet" class="sheet-overlay"><div class="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header"><span class="sheet-title">ثبت وام</span><button class="sheet-close" onclick="closeSheet('loan-sheet')">✕</button></div>
   <div class="sheet-body">
     <div class="form-group"><label class="form-label">طرف حساب <span class="req">*</span></label><select id="loan-acc-select" class="form-control"><option value="">-- انتخاب کنید --</option></select></div>
-    <div class="form-group"><label class="form-label">توضیح / نام وام</label><input id="loan-desc" type="text" class="form-control" placeholder="مثلاً: وام بانک ملت — خرید خودرو"></div>
+    <div class="form-group"><label class="form-label">توضیح / نام وام</label><input id="loan-desc" type="text" class="form-control" placeholder="مثلاً: وام بانک ملت"></div>
     <div class="row">
-      <div class="form-group"><label class="form-label">مبلغ کل وام (تومان) <span class="req">*</span></label><input id="loan-total" type="number" class="form-control" placeholder="۰" style="direction:ltr" oninput="calcInstallment()"></div>
+      <div class="form-group"><label class="form-label">مبلغ کل (تومان) <span class="req">*</span></label><input id="loan-total" type="number" class="form-control" placeholder="۰" style="direction:ltr" oninput="calcInstallment()"></div>
       <div class="form-group"><label class="form-label">تعداد اقساط <span class="req">*</span></label><input id="loan-count" type="number" class="form-control" placeholder="۱۲" style="direction:ltr" oninput="calcInstallment()"></div>
     </div>
     <div class="row">
-      <div class="form-group"><label class="form-label">مبلغ هر قسط (تومان) <span class="req">*</span></label><input id="loan-inst" type="number" class="form-control" placeholder="محاسبه خودکار" style="direction:ltr"></div>
-      <div class="form-group"><label class="form-label">تاریخ اولین قسط <span class="req">*</span></label>
-        <div id="loan-start-display" class="date-display" tabindex="0" onclick="openLoanCal()" data-value=""><span class="date-val">انتخاب تاریخ</span><span>📅</span></div>
-      </div>
-    </div>
-    <div style="background:var(--blue-50);border:1px solid var(--blue-100);border-radius:6px;padding:10px;font-size:12px;color:var(--blue-700);margin-bottom:4px">
-      💡 تاریخ اقساط بعدی هر ماه یک‌بار از تاریخ اولین قسط محاسبه می‌شود.
+      <div class="form-group"><label class="form-label">مبلغ هر قسط <span class="req">*</span></label><input id="loan-inst" type="number" class="form-control" placeholder="محاسبه خودکار" style="direction:ltr"></div>
+      <div class="form-group"><label class="form-label">تاریخ اولین قسط <span class="req">*</span></label><div id="loan-start-display" class="date-display" tabindex="0" onclick="openLoanCal()" data-value=""><span class="date-val">انتخاب تاریخ</span><span>📅</span></div></div>
     </div>
   </div>
   <div class="sheet-footer"><button class="btn btn-primary" onclick="saveLoan()">ثبت وام</button><button class="btn btn-secondary" style="width:auto" onclick="closeSheet('loan-sheet')">انصراف</button></div>
 </div></div>
 
-<!-- Calendar (shared) -->
+<!-- Recurring Sheet -->
+<div id="recur-sheet" class="sheet-overlay"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><span class="sheet-title">ثبت پرداخت دوره‌ای</span><button class="sheet-close" onclick="closeSheet('recur-sheet')">✕</button></div>
+  <div class="sheet-body">
+    <div class="form-group"><label class="form-label">نوع <span class="req">*</span></label>
+      <select id="recur-type" class="form-control">
+        <option value="rent">🏠 اجاره منزل / مکان</option>
+        <option value="installment">🛒 خرید اقساطی</option>
+        <option value="other">📅 سایر پرداخت ماهانه</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">طرف حساب <span class="req">*</span></label><select id="recur-acc-select" class="form-control"><option value="">-- انتخاب کنید --</option></select></div>
+    <div class="form-group"><label class="form-label">توضیح</label><input id="recur-desc" type="text" class="form-control" placeholder="مثلاً: اجاره آپارتمان فردیس — تلویزیون سامسونگ"></div>
+    <div class="row">
+      <div class="form-group"><label class="form-label">مبلغ هر ماه (تومان) <span class="req">*</span></label><input id="recur-amount" type="number" class="form-control" placeholder="۰" style="direction:ltr"></div>
+      <div class="form-group"><label class="form-label">تعداد ماه <span class="req">*</span></label><input id="recur-count" type="number" class="form-control" value="12" style="direction:ltr"></div>
+    </div>
+    <div class="row">
+      <div class="form-group"><label class="form-label">تاریخ اولین پرداخت <span class="req">*</span></label><div id="recur-start-display" class="date-display" tabindex="0" onclick="openRecurCal()" data-value=""><span class="date-val">انتخاب تاریخ</span><span>📅</span></div></div>
+      <div class="form-group"><label class="form-label">روش پرداخت پیش‌فرض</label><select id="recur-method" class="form-control"><option value="card">کارت به کارت</option><option value="cash">نقدی</option><option value="check">چک</option><option value="transfer">حواله</option><option value="other">سایر</option></select></div>
+    </div>
+    <div style="background:var(--blue-50,#F4F8FD);border:1px solid var(--blue-100);border-radius:6px;padding:10px;font-size:12px;color:var(--blue-700)">
+      💡 تاریخ هر ماه به‌صورت خودکار محاسبه می‌شود. بعد از ثبت می‌توانید هر دوره را جداگانه علامت بزنید.
+    </div>
+  </div>
+  <div class="sheet-footer"><button class="btn btn-primary" onclick="saveRecurring()">ثبت پرداخت دوره‌ای</button><button class="btn btn-secondary" style="width:auto" onclick="closeSheet('recur-sheet')">انصراف</button></div>
+</div></div>
+
+<!-- Calendar -->
 <div id="cal-sheet" class="sheet-overlay"><div class="sheet" style="max-height:70dvh">
   <div class="sheet-handle"></div>
   <div class="sheet-header"><span class="sheet-title">انتخاب تاریخ</span><button class="sheet-close" onclick="closeSheet(calTargetSheet)">✕</button></div>
   <div style="padding:0 8px 16px">
     <div class="calendar-sheet">
-      <div class="cal-header">
-        <button class="cal-nav-btn" onclick="calNext()">‹</button>
-        <span class="cal-month-label" id="cal-month-label"></span>
-        <button class="cal-nav-btn" onclick="calPrev()">›</button>
-      </div>
+      <div class="cal-header"><button class="cal-nav-btn" onclick="calNext()">‹</button><span class="cal-month-label" id="cal-month-label"></span><button class="cal-nav-btn" onclick="calPrev()">›</button></div>
       <div class="cal-weekdays"><div class="cal-wd">ش</div><div class="cal-wd">ی</div><div class="cal-wd">د</div><div class="cal-wd">س</div><div class="cal-wd">چ</div><div class="cal-wd">پ</div><div class="cal-wd">ج</div></div>
       <div class="cal-days" id="cal-days"></div>
     </div>
@@ -284,8 +287,7 @@
 </div></div>
 
 <script>
-// chip helper (inline for simplicity)
-function setChip(el) { el.closest('.filter-chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); }
+function setChip(el){el.closest('.filter-chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');}
 </script>
 <script src="./app.js"></script>
 </body>
