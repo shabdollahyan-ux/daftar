@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1D4E89">
+  <meta name="description" content="مدیریت بدهی‌ها و طرف حساب‌ها — کاملاً آفلاین">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="بدهی‌ها">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./style.css">
+  <title>دفتر بدهی‌ها</title>
+</head>
+<body>
+
+<!-- ── Install Banner ── -->
+<div id="install-banner" class="install-banner" style="display:none">
+  <div class="install-banner-text">
+    <strong>نصب اپ</strong>
+    روی گوشی نصب کنید تا بدون اینترنت باز شود
+  </div>
+  <button class="btn btn-sm" style="background:white;color:var(--blue-700);width:auto;flex-shrink:0" onclick="triggerInstall()">نصب</button>
+  <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;flex-shrink:0">✕</button>
+</div>
+
+<!-- ── App Header ── -->
+<header class="app-header">
+  <div class="app-title">
+    <span class="app-title-icon">📒</span>
+    دفتر بدهی‌ها
+  </div>
+  <div id="saveChip" class="save-chip">
+    <span class="save-dot"></span>
+    <span id="saveChipText">در حال بارگذاری...</span>
+  </div>
+</header>
+
+<!-- ── Main Content ── -->
+<main class="main-content">
+
+  <!-- Dashboard -->
+  <div id="page-dashboard" class="page">
+    <div class="page-content">
+
+      <!-- Backup Banner -->
+      <div id="backup-banner" class="backup-banner" style="display:none">
+        <div class="backup-banner-icon">⚠️</div>
+        <div class="backup-banner-text">
+          <strong>یادآوری بکاپ</strong>
+          برای امنیت بیشتر، از دفتر بدهی‌ها خروجی JSON بگیرید.
+          <div class="backup-banner-actions">
+            <button class="btn btn-sm" style="background:var(--amber-700);color:white;border-color:var(--amber-700)" onclick="exportJSON();dismissBackup()">گرفتن بکاپ</button>
+            <button class="btn btn-sm btn-secondary" onclick="dismissBackup()">بعداً</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">بدهی فعال</div>
+          <div class="stat-value red" id="stat-debt">۰</div>
+          <div class="stat-unit">تومان</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">جمع پرداخت</div>
+          <div class="stat-value green" id="stat-paid">۰</div>
+          <div class="stat-unit">تومان</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">طرف حساب</div>
+          <div class="stat-value blue" id="stat-accounts">۰</div>
+          <div class="stat-unit">فعال</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">تراکنش</div>
+          <div class="stat-value" id="stat-txns">۰</div>
+          <div class="stat-unit">ثبت‌شده</div>
+        </div>
+      </div>
+
+      <!-- Recent -->
+      <div id="dash-recent"></div>
+    </div>
+  </div>
+
+  <!-- Accounts -->
+  <div id="page-accounts" class="page">
+    <div class="page-content">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="جستجو در نام یا شناسه..." oninput="accSearch=this.value;renderAccounts()">
+      </div>
+      <div class="filter-chips">
+        <button class="chip active" onclick="accStatusFilter='';this.closest('.filter-chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));this.classList.add('active');renderAccounts()">همه</button>
+        <button class="chip" onclick="accStatusFilter='active';this.closest('.filter-chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));this.classList.add('active');renderAccounts()">فعال</button>
+        <button class="chip" onclick="accStatusFilter='settled';this.closest('.filter-chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));this.classList.add('active');renderAccounts()">تسویه‌شده</button>
+      </div>
+      <div id="accounts-list"></div>
+    </div>
+  </div>
+
+  <!-- Transactions -->
+  <div id="page-transactions" class="page">
+    <div class="page-content">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="جستجو در توضیحات یا نام..." oninput="txnSearch=this.value;renderTransactions()">
+      </div>
+      <div class="filter-chips">
+        <button class="chip active" onclick="txnTypeFilter='';this.closest('.filter-chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));this.classList.add('active');renderTransactions()">همه</button>
+        <button class="chip" onclick="txnTypeFilter='receive';this.closest('.filter-chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));this.classList.add('active');renderTransactions()">📥 دریافت</button>
+        <button class="chip" onclick="txnTypeFilter='pay';this.closest('.filter-chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));this.classList.add('active');renderTransactions()">📤 پرداخت</button>
+        <button class="chip" onclick="txnTypeFilter='adjust';this.closest('.filter-chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));this.classList.add('active');renderTransactions()">⚙️ اصلاحیه</button>
+      </div>
+      <div id="txn-list"></div>
+    </div>
+  </div>
+
+  <!-- Reports -->
+  <div id="page-reports" class="page">
+    <div class="page-content">
+
+      <!-- Backup Actions -->
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-row" style="cursor:default">
+          <div class="card-row-info">
+            <div class="card-row-name">بکاپ و بازیابی</div>
+            <div class="card-row-sub">اطلاعات روی همین دستگاه ذخیره است</div>
+          </div>
+        </div>
+        <div style="padding:0 16px 14px;display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="exportJSON()">📤 گرفتن بکاپ JSON</button>
+          <button class="btn btn-secondary" onclick="importJSON()">📥 بازیابی بکاپ</button>
+        </div>
+      </div>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+
+      <!-- Account Report -->
+      <div class="card" style="margin-bottom:12px">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200)">
+          <div class="section-title">گزارش طرف حساب</div>
+        </div>
+        <div style="padding:14px 16px">
+          <div class="form-group">
+            <select class="form-control" id="report-acc-select">
+              <option value="">-- انتخاب کنید --</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="generateReport()">تولید گزارش</button>
+          <div id="report-output" class="mt-4"></div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="card">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200)">
+          <div class="section-title">خلاصه کل دفتر</div>
+        </div>
+        <div style="padding:14px 16px">
+          <button class="btn btn-secondary" onclick="generateSummary()">نمایش خلاصه</button>
+          <div id="summary-output" class="mt-4"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- ── FAB ── -->
+<button id="fab" class="fab" onclick="openAddTransaction()">+ تراکنش</button>
+
+<!-- ── Bottom Navigation ── -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-dashboard" onclick="switchPage('dashboard')">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">داشبورد</span>
+  </button>
+  <button class="nav-item" id="nav-accounts" onclick="switchPage('accounts')">
+    <span class="nav-icon">👥</span>
+    <span class="nav-label">حساب‌ها</span>
+  </button>
+  <button class="nav-item" id="nav-transactions" onclick="switchPage('transactions')">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">تراکنش‌ها</span>
+  </button>
+  <button class="nav-item" id="nav-reports" onclick="switchPage('reports')">
+    <span class="nav-icon">📈</span>
+    <span class="nav-label">گزارش‌ها</span>
+  </button>
+</nav>
+
+<!-- ── Toast Container ── -->
+<div id="toast-wrap" class="toast-wrap"></div>
+
+<!-- ══════════════════════════════════════════
+     Bottom Sheets
+══════════════════════════════════════════ -->
+
+<!-- Account Detail Sheet -->
+<div id="detail-sheet" class="sheet-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title" id="detail-sheet-title">جزئیات حساب</span>
+      <button class="sheet-close" onclick="closeSheet('detail-sheet')">✕</button>
+    </div>
+    <div class="sheet-body" id="detail-sheet-body"></div>
+  </div>
+</div>
+
+<!-- Add/Edit Account Sheet -->
+<div id="acc-sheet" class="sheet-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title" id="acc-sheet-title">افزودن طرف حساب</span>
+      <button class="sheet-close" onclick="closeSheet('acc-sheet')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label class="form-label">نام <span class="req">*</span></label>
+        <input id="acc-name" type="text" class="form-control" placeholder="مثلاً: احمدی">
+      </div>
+      <div class="form-group">
+        <label class="form-label">توضیح (اختیاری)</label>
+        <input id="acc-desc" type="text" class="form-control" placeholder="مثلاً: بانک ملت شعبه مرکزی">
+      </div>
+      <div class="form-group">
+        <label class="form-label">وضعیت</label>
+        <select id="acc-status" class="form-control">
+          <option value="active">فعال</option>
+          <option value="settled">تسویه‌شده</option>
+        </select>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-primary" onclick="saveAccount()">ذخیره</button>
+      <button class="btn btn-secondary" style="width:auto" onclick="closeSheet('acc-sheet')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Transaction Sheet -->
+<div id="txn-sheet" class="sheet-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title" id="txn-sheet-title">ثبت تراکنش</span>
+      <button class="sheet-close" onclick="closeSheet('txn-sheet')">✕</button>
+    </div>
+    <div class="sheet-body">
+
+      <!-- Type Segmented Control -->
+      <div class="form-group">
+        <label class="form-label">نوع تراکنش <span class="req">*</span></label>
+        <div class="seg-control">
+          <button class="seg-btn active type-receive" data-type="receive" onclick="setSegment('receive')">📥 دریافت</button>
+          <button class="seg-btn type-pay"            data-type="pay"     onclick="setSegment('pay')">📤 پرداخت</button>
+          <button class="seg-btn type-adjust"         data-type="adjust"  onclick="setSegment('adjust')">⚙️ اصلاحیه</button>
+        </div>
+      </div>
+
+      <!-- Account -->
+      <div class="form-group">
+        <label class="form-label">طرف حساب <span class="req">*</span></label>
+        <select id="txn-acc-select" class="form-control">
+          <option value="">-- انتخاب کنید --</option>
+        </select>
+      </div>
+
+      <!-- Amount + Date -->
+      <div class="row">
+        <div class="form-group">
+          <label class="form-label">مبلغ (تومان) <span class="req">*</span></label>
+          <input id="txn-amount" type="number" class="form-control" placeholder="۰" min="0" style="direction:ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">تاریخ <span class="req">*</span></label>
+          <div class="date-picker-wrap">
+            <div id="txn-date-display" class="date-display" tabindex="0"
+                 onclick="openCalendar()" onkeydown="if(event.key==='Enter')openCalendar()"
+                 data-value="">
+              <span class="date-val">انتخاب تاریخ</span>
+              <span style="color:var(--gray-400)">📅</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Method -->
+      <div class="form-group">
+        <label class="form-label">روش پرداخت</label>
+        <select id="txn-method" class="form-control">
+          <option value="card">کارت به کارت</option>
+          <option value="cash">نقدی</option>
+          <option value="check">چک</option>
+          <option value="transfer">حواله</option>
+          <option value="other">سایر</option>
+        </select>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label class="form-label">توضیحات / شماره پیگیری (اختیاری)</label>
+        <textarea id="txn-desc" class="form-control" placeholder="مثلاً: قرض بابت تعمیر خودرو — ۱۲۳۴۵" rows="2"></textarea>
+      </div>
+
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-primary" onclick="saveTransaction()">ثبت تراکنش</button>
+      <button class="btn btn-secondary" style="width:auto" onclick="closeSheet('txn-sheet')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- Jalali Calendar Sheet -->
+<div id="cal-sheet" class="sheet-overlay">
+  <div class="sheet" style="max-height:70dvh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">انتخاب تاریخ</span>
+      <button class="sheet-close" onclick="closeSheet('cal-sheet')">✕</button>
+    </div>
+    <div style="padding:0 8px 16px">
+      <div class="calendar-sheet">
+        <div class="cal-header">
+          <button class="cal-nav-btn" onclick="calNext()">‹</button>
+          <span class="cal-month-label" id="cal-month-label"></span>
+          <button class="cal-nav-btn" onclick="calPrev()">›</button>
+        </div>
+        <div class="cal-weekdays">
+          <div class="cal-wd">ش</div>
+          <div class="cal-wd">ی</div>
+          <div class="cal-wd">د</div>
+          <div class="cal-wd">س</div>
+          <div class="cal-wd">چ</div>
+          <div class="cal-wd">پ</div>
+          <div class="cal-wd">ج</div>
+        </div>
+        <div class="cal-days" id="cal-days"></div>
+      </div>
+      <div style="padding:12px 8px 0;display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="selectDate(jalaliToday())">امروز</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeSheet('cal-sheet')">انصراف</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
