@@ -728,6 +728,71 @@ async function handleImport(e) {
   reader.readAsText(file);
 }
 
+// ── Reset / Factory Reset ─────────────────────────────────────────────────────
+async function resetAll() {
+  const step1 = confirm(
+    '⚠️ پاک کردن کلیه اطلاعات\n\nتمام طرف حساب‌ها و تراکنش‌ها برای همیشه پاک می‌شوند.\nاین عملیات برگشت‌پذیر نیست.\n\nمطمئن هستید؟'
+  );
+  if (!step1) return;
+
+  const step2 = confirm(
+    '🔴 تأیید نهایی\n\nبرای آخرین بار: همه اطلاعات پاک می‌شود.\n\nادامه می‌دهید؟'
+  );
+  if (!step2) return;
+
+  // Wipe IndexedDB
+  if (idbDb) {
+    await new Promise(resolve => {
+      const tx = idbDb.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(IDB_KEY);
+      tx.oncomplete = resolve;
+      tx.onerror    = resolve;
+    });
+  }
+
+  // Wipe localStorage
+  try { localStorage.removeItem(LS_KEY); } catch(_) {}
+
+  // Reset in-memory state
+  db = newDB();
+
+  closeSheet('reset-sheet');
+  renderPage(activePage);
+  renderReportsPage();
+  setSaveChip('saved');
+  showToast('همه اطلاعات پاک شد');
+}
+
+// ── Factory Reset ────────────────────────────────────────────────────────────
+async function factoryReset() {
+  const step1 = confirm('⚠️ پاک کردن همه اطلاعات\n\nتمام طرف حساب‌ها و تراکنش‌ها پاک می‌شود.\nاین عملیات برگشت‌پذیر نیست.\n\nادامه می‌دهید؟');
+  if (!step1) return;
+
+  const step2 = confirm('آخرین تأیید:\n\nمطمئن هستید که می‌خواهید همه چیز پاک شود؟');
+  if (!step2) return;
+
+  // Clear IndexedDB
+  if (idbDb) {
+    await new Promise(resolve => {
+      const tx = idbDb.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(IDB_KEY);
+      tx.oncomplete = resolve;
+      tx.onerror = resolve;
+    });
+  }
+
+  // Clear localStorage
+  try { localStorage.removeItem(LS_KEY); } catch(_) {}
+
+  // Reset in-memory state
+  db = newDB();
+
+  renderPage(activePage);
+  renderReportsPage();
+  setSaveChip('saved');
+  showToast('همه اطلاعات پاک شد');
+}
+
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function showToast(msg, type='') {
   const wrap = $('toast-wrap');
